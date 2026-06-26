@@ -37,6 +37,7 @@ class InputManager : IDisposable
 
     private IDirectInput8? _directInput;
     private readonly List<DirectInputPad> _directInputPads = new();
+    private readonly HashSet<Guid> _directInputIgnoredPads = new();
     private DateTime _lastDirectInputRefresh = DateTime.MinValue;
     private readonly object _rawInputLock = new();
     private ControllerState _rawInputState = new(0, 0, 0, false);
@@ -601,10 +602,12 @@ class InputManager : IDisposable
                 .ToList();
 
             var known = new HashSet<Guid>(_directInputPads.Select(p => p.InstanceGuid));
+            known.UnionWith(_directInputIgnoredPads);
             if (!force && instances.All(d => known.Contains(d.InstanceGuid)) && known.Count == instances.Count)
                 return;
 
             DisposeDirectInputPads();
+            _directInputIgnoredPads.Clear();
 
             foreach (var instance in instances)
             {
@@ -620,6 +623,14 @@ class InputManager : IDisposable
                         || name.Contains("dualsense", StringComparison.OrdinalIgnoreCase)
                         || name.Contains("wireless controller", StringComparison.OrdinalIgnoreCase)
                         || instance.ProductGuid.ToString("N").Contains("054c", StringComparison.OrdinalIgnoreCase);
+
+                    if (!isSony && IsXInputLikeDevice(name))
+                    {
+                        device.Dispose();
+                        _directInputIgnoredPads.Add(instance.InstanceGuid);
+                        Log.Write($"DirectInput controller skipped; using XInput instead: {name}");
+                        continue;
+                    }
 
                     _directInputPads.Add(new DirectInputPad
                     {
@@ -698,6 +709,13 @@ class InputManager : IDisposable
 
         ApplyPov(state.PointOfViewControllers, ref buttons, activeNames);
         return new ControllerState(buttons, lt, rt, true, activeNames);
+    }
+
+    private static bool IsXInputLikeDevice(string name)
+    {
+        return name.Contains("xbox", StringComparison.OrdinalIgnoreCase)
+            || name.Contains("xinput", StringComparison.OrdinalIgnoreCase)
+            || name.Contains("360 for windows", StringComparison.OrdinalIgnoreCase);
     }
 
     private static void ApplyPov(int[] povs, ref ushort buttons, HashSet<string> activeNames)
@@ -802,7 +820,7 @@ class InputManager : IDisposable
         {
             0x01 => 8, // USB/simple HID
             0x31 => 9, // Bluetooth extended HID
-            _ => GuessPlayStationButtonsOffset(report)
+            _ => -1
         };
 
         if (buttonsOffset < 0 || buttonsOffset + 2 >= report.Length)
@@ -856,18 +874,6 @@ class InputManager : IDisposable
 
         state = new ControllerState(buttons, lt, rt, true, names);
         return true;
-    }
-
-    private static int GuessPlayStationButtonsOffset(byte[] report)
-    {
-        for (int i = 5; i + 2 < Math.Min(report.Length, 16); i++)
-        {
-            byte dpad = (byte)(report[i] & 0x0F);
-            if (dpad <= 8)
-                return i;
-        }
-
-        return -1;
     }
 
     private static bool TryReadTriggerAxis(byte[] report, int buttonsOffset, bool left, out byte value)

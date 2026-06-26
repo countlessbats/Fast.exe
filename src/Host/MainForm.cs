@@ -10,7 +10,7 @@ namespace Fast;
 
 class MainForm : Form
 {
-    private const string AppVersion = "1.0.4";
+    private const string AppVersion = "1.0.5";
     private readonly AppSettings _settings;
     private readonly SpeedManager _speedMgr;
     private readonly ProcessWatcher _watcher;
