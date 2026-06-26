@@ -1,0 +1,22 @@
+# Build output
+bin/
+**/bin/
+**/obj/
+
+# Native compiler intermediates
+*.obj
+*.exp
+*.lib
+
+# Runtime logs and local settings
+*.log
+settings.json
+
+# IDE/user files
+.vs/
+.vscode/
+*.user
+*.suo
+
+# Release packages
+*.zip
