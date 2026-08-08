@@ -6,7 +6,12 @@ namespace Fast;
 static class Native
 {
     // --- Process ---
-    public const uint PROCESS_ALL_ACCESS = 0x1FFFFF;
+    public const uint PROCESS_CREATE_THREAD = 0x0002;
+    public const uint PROCESS_QUERY_LIMITED_INFORMATION = 0x1000;
+    public const uint PROCESS_VM_OPERATION = 0x0008;
+    public const uint PROCESS_VM_WRITE = 0x0020;
+    public const uint PROCESS_INJECT_ACCESS =
+        PROCESS_CREATE_THREAD | PROCESS_QUERY_LIMITED_INFORMATION | PROCESS_VM_OPERATION | PROCESS_VM_WRITE;
     public const uint MEM_COMMIT = 0x1000;
     public const uint MEM_RESERVE = 0x2000;
     public const uint MEM_RELEASE = 0x8000;
@@ -40,14 +45,15 @@ static class Native
     [DllImport("kernel32.dll", SetLastError = true)]
     public static extern bool IsWow64Process(IntPtr hProcess, out bool wow64Process);
 
-    [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Ansi)]
-    public static extern IntPtr GetModuleHandleA(string moduleName);
+    [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+    public static extern IntPtr GetModuleHandleW(string moduleName);
 
     [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Ansi)]
     public static extern IntPtr GetProcAddress(IntPtr hModule, string procName);
 
     // --- Shared Memory ---
     public const uint FILE_MAP_ALL_ACCESS = 0xF001F;
+    public const uint FILE_MAP_WRITE = 0x0002;
 
     [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Ansi)]
     public static extern IntPtr CreateFileMappingA(IntPtr hFile, IntPtr secAttrs, uint protect, uint sizeHigh, uint sizeLow, string name);

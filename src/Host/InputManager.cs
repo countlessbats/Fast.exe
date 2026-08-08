@@ -223,7 +223,7 @@ class InputManager : IDisposable
     {
         _hookProc = KeyboardHookCallback;
         _hookHandle = Native.SetWindowsHookEx(Native.WH_KEYBOARD_LL, _hookProc,
-            Native.GetModuleHandleA(null!), 0);
+            Native.GetModuleHandleW(null!), 0);
 
         RegisterRawInput();
 

@@ -70,7 +70,6 @@ class ProcessWatcher
 
     public void Scan()
     {
-        Log.Write("Scan start");
         // Remove dead processes
         List<int> detachedPids = new();
         lock (_attachedLock)

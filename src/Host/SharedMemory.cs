@@ -33,7 +33,7 @@ class SharedMemory : IDisposable
         if (_hMap == IntPtr.Zero)
             throw new Exception($"CreateFileMapping failed: {Marshal.GetLastWin32Error()}");
 
-        _pView = Native.MapViewOfFile(_hMap, Native.FILE_MAP_ALL_ACCESS, 0, 0, UIntPtr.Zero);
+        _pView = Native.MapViewOfFile(_hMap, Native.FILE_MAP_WRITE, 0, 0, UIntPtr.Zero);
         if (_pView == IntPtr.Zero)
         {
             Native.CloseHandle(_hMap);

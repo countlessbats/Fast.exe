@@ -36,9 +36,9 @@ static class Injector
         if (!File.Exists(fullPath))
             throw new FileNotFoundException($"Hook DLL not found: {fullPath}");
 
-        byte[] pathBytes = Encoding.ASCII.GetBytes(fullPath + '\0');
+        byte[] pathBytes = Encoding.Unicode.GetBytes(fullPath + '\0');
 
-        IntPtr hProcess = Native.OpenProcess(Native.PROCESS_ALL_ACCESS, false, pid);
+        IntPtr hProcess = Native.OpenProcess(Native.PROCESS_INJECT_ACCESS, false, pid);
         if (hProcess == IntPtr.Zero)
             throw new Exception($"OpenProcess failed for PID {pid}: {Marshal.GetLastWin32Error()}");
 
@@ -57,11 +57,11 @@ static class Injector
                 throw new Exception($"WriteProcessMemory failed: {Marshal.GetLastWin32Error()}");
             }
 
-            // Get LoadLibraryA address
-            IntPtr hKernel = Native.GetModuleHandleA("kernel32.dll");
-            IntPtr loadLibAddr = Native.GetProcAddress(hKernel, "LoadLibraryA");
+            // Get LoadLibraryW address
+            IntPtr hKernel = Native.GetModuleHandleW("kernel32.dll");
+            IntPtr loadLibAddr = Native.GetProcAddress(hKernel, "LoadLibraryW");
             if (loadLibAddr == IntPtr.Zero)
-                throw new Exception("Could not find LoadLibraryA");
+                throw new Exception("Could not find LoadLibraryW");
 
             // Create remote thread
             IntPtr hThread = Native.CreateRemoteThread(hProcess, IntPtr.Zero, UIntPtr.Zero,
@@ -82,10 +82,10 @@ static class Injector
 
             if (exitCode == 0)
             {
-                Log.Write($"Inject failed in target: pid={pid}, LoadLibraryA returned 0");
+                Log.Write($"Inject failed in target: pid={pid}, LoadLibraryW returned 0");
                 Native.CloseHandle(hThread);
                 Native.VirtualFreeEx(hProcess, remoteMem, UIntPtr.Zero, Native.MEM_RELEASE);
-                throw new Exception("Remote LoadLibraryA returned NULL. This usually means a DLL/target bitness mismatch.");
+                throw new Exception("Remote LoadLibraryW returned NULL. This usually means a DLL/target bitness mismatch.");
             }
 
             Log.Write($"Inject success: pid={pid}, module=0x{exitCode:X}");
@@ -115,7 +115,7 @@ static class Injector
         if (!Environment.Is64BitOperatingSystem)
             return true;
 
-        IntPtr hProcess = Native.OpenProcess(Native.PROCESS_ALL_ACCESS, false, pid);
+        IntPtr hProcess = Native.OpenProcess(Native.PROCESS_QUERY_LIMITED_INFORMATION, false, pid);
         if (hProcess == IntPtr.Zero)
             throw new Exception($"OpenProcess failed while checking target bitness for PID {pid}: {Marshal.GetLastWin32Error()}");
 

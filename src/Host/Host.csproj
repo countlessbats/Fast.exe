@@ -7,6 +7,13 @@
     <Nullable>enable</Nullable>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <UseWindowsForms>true</UseWindowsForms>
+    <Version>1.0.6</Version>
+    <FileVersion>1.0.6.0</FileVersion>
+    <AssemblyVersion>1.0.6.0</AssemblyVersion>
+    <Product>Fast</Product>
+    <Description>Windows game-speed controller</Description>
+    <Company>DeepThought</Company>
+    <Copyright>Copyright (c) 2026</Copyright>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Vortice.DirectInput" Version="2.4.2" />

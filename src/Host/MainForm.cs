@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Threading;
 using System.Windows.Forms;
 
@@ -10,7 +11,11 @@ namespace Fast;
 
 class MainForm : Form
 {
-    private const string AppVersion = "1.0.5";
+    private static readonly string AppVersion = typeof(MainForm)
+        .Assembly
+        .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?
+        .InformationalVersion
+        .Split('+')[0] ?? "dev";
     private readonly AppSettings _settings;
     private readonly SpeedManager _speedMgr;
     private readonly ProcessWatcher _watcher;
